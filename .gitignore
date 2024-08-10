@@ -1,0 +1,12 @@
+News_Summarization/Data/문서요약 텍스트/Preprocess/train_preprocess.csv
+News_Summarization/Data/문서요약 텍스트/Preprocess/train.csv
+News_Summarization/Data/문서요약 텍스트/Preprocess/validation.csv
+News_Summarization/Data/문서요약 텍스트/Training/법률_train_original.zip
+News_Summarization/Data/문서요약 텍스트/Training/사설_train_original.zip
+News_Summarization/Data/문서요약 텍스트/Training/신문기사_train_original.zip
+News_Summarization/Data/문서요약 텍스트/Training/news_train_original.json
+News_Summarization/Data/문서요약 텍스트/Validation/법률_valid_original.zip
+News_Summarization/Data/문서요약 텍스트/Validation/사설_valid_original.zip
+News_Summarization/Data/문서요약 텍스트/Validation/신문기사_valid_original.zip
+News_Summarization/Data/문서요약 텍스트/Validation/news_valid_original.json
+News_Summarization/Data/문서요약 텍스트/Preprocess/tokenizer.subwords

@@ -1,0 +1,5 @@
+python==3.8.18
+tensorflow==2.10.0
+tensorflow-gpu==2.10.0
+CUDA==11.8
+CUdnn==8.7.0

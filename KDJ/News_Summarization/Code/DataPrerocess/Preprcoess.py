@@ -6,7 +6,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from transformers import BertTokenizer
 from tqdm import tqdm
-
+##하하하하
 """
 ######################
 ##      1차처리     ##

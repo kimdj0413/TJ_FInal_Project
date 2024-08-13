@@ -20,7 +20,12 @@ def preprocess_sentence(sentence):
     # 다시 연속된 공백을 하나로, 양쪽 공백 제거
     sentence = re.sub(r'\s+', ' ', sentence).strip()
     return sentence
-sentence = val_sentence[1]
-print(val_sentence[1])
-sentence = preprocess_sentence(sentence)
-print(sentence)
+val_sentence = val_sentence.apply(preprocess_sentence)
+
+df = pd.DataFrame({
+    'sentence':val_sentence,
+    'abs':val_abs
+})
+df.to_csv('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/valid_test.csv',index=False)
+
+print(df)

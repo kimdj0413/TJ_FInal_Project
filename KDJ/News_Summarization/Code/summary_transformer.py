@@ -31,7 +31,8 @@ tokenizer = tfds.deprecated.text.SubwordTextEncoder.load_from_file('D:/TJ_FInal_
 START_TOKEN, END_TOKEN = [tokenizer.vocab_size], [tokenizer.vocab_size+1]
 VOCAB_SIZE = tokenizer.vocab_size + 2
 
-MAX_LENGTH = 1841
+SEN_MAX_LENGTH = 300
+ABS_MAX_LENGTH = 40
 def tokenizer_and_filter(inputs, outputs):
     tokenized_inputs, tokenized_outputs = [], []
 
@@ -43,10 +44,10 @@ def tokenizer_and_filter(inputs, outputs):
         tokenized_outputs.append(sentence2)
 
     tokenized_inputs = tf.keras.preprocessing.sequence.pad_sequences(
-        tokenized_inputs, maxlen=MAX_LENGTH, padding='post'
+        tokenized_inputs, maxlen=SEN_MAX_LENGTH, padding='post'
     )
     tokenized_outputs = tf.keras.preprocessing.sequence.pad_sequences(
-        tokenized_outputs, maxlen=MAX_LENGTH, padding='post'
+        tokenized_outputs, maxlen=ABS_MAX_LENGTH, padding='post'
     )
 
     return tokenized_inputs, tokenized_outputs
@@ -338,7 +339,7 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
     return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
 def loss_function(y_true, y_pred):
-  y_true = tf.reshape(y_true, shape=(-1, MAX_LENGTH - 1))
+  y_true = tf.reshape(y_true, shape=(-1, ABS_MAX_LENGTH - 1))
 
   loss = tf.keras.losses.SparseCategoricalCrossentropy(
       from_logits=True, reduction='none')(y_true, y_pred)
@@ -354,7 +355,7 @@ optimizer = tf.keras.optimizers.Adam(
 )
 
 def acuuracy(y_true, y_pred):
-  y_true = tf.reshape(y_true, shape=(-1, MAX_LENGTH - 1))
+  y_true = tf.reshape(y_true, shape=(-1, ABS_MAX_LENGTH - 1))
   return tf.keras.metrics.sparse_categorical_accuracy(y_true, y_pred)
 
 model.compile(optimizer=optimizer, loss=loss_function, metrics=[acuuracy])
@@ -380,7 +381,7 @@ def evaluate(sentence):
 
   output = tf.expand_dims(START_TOKEN, 0)
 
-  for i in range(MAX_LENGTH):
+  for i in range(ABS_MAX_LENGTH):
     predictions = model(inputs=[sentence, output], training=False)
 
     predictions = predictions[:, -1:, :]
@@ -415,10 +416,10 @@ class EpochValidation(Callback):
         predict(val_sentence[1])
         print(f'\n정답 : {val_abs[1]}')
 
-checkpoint = ModelCheckpoint('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5', save_best_only=True, monitor='loss', mode='min')
+# checkpoint = ModelCheckpoint('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5', save_best_only=True, monitor='loss', mode='min')
 
 EPOCHS = 100
-model.fit(dataset, epochs=EPOCHS, callbacks=[EpochValidation(),checkpoint])
+model.fit(dataset, epochs=EPOCHS, callbacks=[EpochValidation()]) #,checkpoint
 
 model = load_model('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5')
 

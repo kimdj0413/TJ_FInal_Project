@@ -417,7 +417,7 @@ class EpochValidation(Callback):
 
 checkpoint = ModelCheckpoint('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5', save_best_only=True, monitor='loss', mode='min')
 
-EPOCHS = 50
+EPOCHS = 100
 model.fit(dataset, epochs=EPOCHS, callbacks=[EpochValidation(),checkpoint])
 
 model = load_model('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5')

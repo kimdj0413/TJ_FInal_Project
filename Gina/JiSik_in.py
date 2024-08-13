@@ -2,53 +2,53 @@ import pandas as pd
 import numpy as np
 import platform
 import matplotlib.pyplot as plt
-
 from bs4 import BeautifulSoup 
 from urllib.request import urlopen
 import urllib
 import time
 
 tmp1 = 'https://search.naver.com/search.naver?where=kin'
-# 네이버 지식인 Url 뒤에 kin부분만 바꾸면 뉴스 블로그 카페 다 가능하다.
+# 네이버 지식인 Url 뒤에 kin부분만 바꾸면 뉴스 블로그 카페 다 가능
 html = tmp1 + '&sm=tab_jum&ie=utf8&query={key_word}&kin_start={num}' 
 # 네이버 지식인 페이지수 결정 Url
 
-response = urlopen(html.format(num = 1, key_word = urllib.parse.quote('코인세탁방')))
+response = urlopen(html.format(num = 20, key_word = urllib.parse.quote('국내주식')))
 #urlib.parse.quite를 사용하는 이유는 Url에 한글을 섞으면 오류가 발생하는데 그 오류를 방지하기 위한 함수이다.
-#코인세탁방에 본인이 원하는 키워드 입력
+
 soup = BeautifulSoup(response, "html.parser")
 
 tmp = soup.find_all('dl')
 
 tmp_list = []
 for line in tmp:
-    tmp_list.append(line.text)
-    
-tmp_list
+    tmp_list.append(line.text)  
+print(tmp_list)
 
 
 #타임바를 시각적으로 표현 할 수 있는 패키지
-from tqdm import tqdm_notebook 
+from tqdm import tqdm  
 
-coin_laundry_text = []
-for n in tqdm_notebook(range(1, 1000, 10)): # range(1,1000),mininterval = 10
-    response = urlopen(html.format(num=n, key_word=urllib.parse.quote('코인세탁방')))
+stock_market_ko = []
+for n in tqdm(range(1, 1000, 10)): # range(1,1000),mininterval = 10
+    response = urlopen(html.format(num=n, key_word=urllib.parse.quote('국내주식')))
    
     soup = BeautifulSoup(response, "html.parser")
 
     tmp = soup.find_all('dl')
 
     for line in tmp:
-        coin_laundry_text.append(line.text)
+        stock_market_ko.append(line.text)
         
     time.sleep(0.5)
+
+print(stock_market_ko[:10])  # 처음 몇 개의 데이터를 출력하여 크롤링이 제대로 이루어졌는지 확인
 
 # 자연어 처리에 필요한 패키지를  불러오고 크롤링한 리스트형태의 구조를 스트링 구조로 바꿔준다.
 import nltk
 import re
-from konlpy.tag import Twitter; t = Twitter()
+from konlpy.tag import Okt; t = Okt() 
 
-df_coin_laundry_text = str(coin_laundry_text)
+df_stock_market_ko = str(stock_market_ko)
 
 
 # 특수문자 제거 하기
@@ -57,7 +57,8 @@ def cleanText(readData):
     return text
 
 # morphs함수로 형태소 추출
-tokens_ko = t.morphs(cleanText(df_coin_laundry_text))
+tokens_ko = t.morphs(cleanText(df_stock_market_ko))
+print(tokens_ko)  # 형태소 분석 후 결과 확인
 
 # 불용어
 stop_words = ['가','요','답변','을','수','에','질문','제','를','이','도',
@@ -71,8 +72,12 @@ stop_words = ['가','요','답변','을','수','에','질문','제','를','이',
 # 불용어 처리하고 많이 언급된 상위 50개 
 tokens_ko = [each_word for each_word in tokens_ko if each_word not in stop_words]
 
-ko = nltk.Text(tokens_ko, name='코인세탁방')
+ko = nltk.Text(tokens_ko, name='국내주식')
 ko.vocab().most_common(50)
+
+data = ko.vocab().most_common(50)
+print(data)  # 빈 데이터가 출력되는지 확인
+
 
 '''
 # 시각화
@@ -91,27 +96,39 @@ from PIL import Image
 
 data = ko.vocab().most_common(50)
 
-wordcloud = WordCloud(font_path='/Users/hankiho/anaconda3/lib/python3.6/site-packages/pytagcloud/fonts/NanumBarunGothic.ttf',
-                      relative_scaling = 0.2,
-                      stopwords=STOPWORDS,
-                      background_color='white',
-                      ).generate_from_frequencies(dict(data))
-plt.figure(figsize=(16,8))
-plt.imshow(wordcloud)
-plt.axis("off")
-plt.show()
+if len(data) > 0:
+    wordcloud = WordCloud(font_path='C:/Windows/Fonts/NanumBarunGothic.ttf',
+                          relative_scaling=0.2,
+                          stopwords=STOPWORDS,
+                          background_color='white').generate_from_frequencies(dict(data))
+    plt.figure(figsize=(16, 8))
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.show()
+else:
+    print("No words available to generate word cloud.")
+    wordcloud = None  # 워드클라우드가 없음을 명시적으로 표현
+
+# Word2Vec 모델링 부분에서 wordcloud가 있는 경우에만 시각화
+if wordcloud:
+    plt.figure(figsize=(16, 8))
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.show()
+
 
 
 #  gensim 패키지를 통해 긍부정을 분석
 import gensim
 from gensim.models import word2vec
 
-twitter = Twitter()
+Okt_ = Okt()
 results = []
-lines = coin_laundry_text
+lines = stock_market_ko
+
 
 for line in lines:
-    malist = twitter.pos(line, norm=True, stem=True)
+    malist = Okt_.pos(line, norm=True, stem=True)
     r= []
     
     for word in malist:
@@ -122,15 +139,18 @@ for line in lines:
     results.append(r1)
     print(r1)
 
+
+
 # 긍정부정 분석 결과를 저장하여 word2vec로 긍부정 알아보기 
-data_file = 'coin_laundry.data'
+data_file = '국내주식.data'
 with open(data_file, 'w', encoding='utf-8') as fp:
     fp.write("\n".join(results))
 
 data = word2vec.LineSentence(data_file)
-model = word2vec.Word2Vec(data, size=200, window=10, hs=1,min_count=2, sg=1) 
-                                                                        
-model.save('coin_laundry.model')
+model = word2vec.Word2Vec(data, vector_size=200, window=10, hs=1, min_count=2, sg=1)  # size -> vector_size로 변경
+model.save('국내주식.model')
 
-model = word2vec.Word2Vec.load('coin_laundry.model')
-model.most_similar(positive=['솜'], negative=['코인'])
+model = word2vec.Word2Vec.load('국내주식.model')
+similar_words = model.wv.most_similar(positive=['상승'], negative=['하락'])  # wv 속성으로 접근해야 함
+print(similar_words)
+

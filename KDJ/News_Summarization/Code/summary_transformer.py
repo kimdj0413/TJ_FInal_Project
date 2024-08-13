@@ -7,6 +7,8 @@ import time
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from tensorflow import keras
+from keras.callbacks import Callback, ModelCheckpoint
+from keras.models import load_model
 # -*- coding: utf-8 -*-
 
 # 사용 가능한 GPU 수 확인
@@ -357,19 +359,18 @@ def acuuracy(y_true, y_pred):
 
 model.compile(optimizer=optimizer, loss=loss_function, metrics=[acuuracy])
 
-EPOCHS = 50
-model.fit(dataset, epochs=EPOCHS)
-
-def replace_special_characters(series):     # 영어,한자, 숫자, 한글, 공백, ,!?'"~ = 공백 으로 대치
-    return series.apply(lambda x: re.sub(r'[^가-힣a-zA-Z0-9\u4e00-\u9fff\s.,!?\'\"~]', ' ', x))
-
 def preprocess_sentence(sentence):
-  sentence = sentence.str.replace(r'\S+@\S+\.\S+', '', regex=True)        # 이메일
-  sentence = sentence.str.replace(r'\s+', ' ', regex=True).str.strip()    # 연속된 공백을 하나로
-  sentence = sentence.str.replace('\n', '', regex=False)                  # 개행 삭제
-  sentence = replace_special_characters(sentence)
-  sentence = sentence.str.replace(r'\s+', ' ', regex=True).str.strip()
-  return sentence
+    # 이메일 패턴 제거
+    sentence = re.sub(r'\S+@\S+\.\S+', '', sentence)  # 이메일 제거
+    # 연속된 공백을 하나로, 양쪽 공백 제거
+    sentence = re.sub(r'\s+', ' ', sentence).strip()
+    # 개행 삭제
+    sentence = sentence.replace('\n', '')
+    # 특수 문자 제거 (한글, 영어, 숫자, 공백만 남기기)
+    sentence = re.sub(r'[^가-힣a-zA-Z0-9\s]', ' ', sentence)
+    # 다시 연속된 공백을 하나로, 양쪽 공백 제거
+    sentence = re.sub(r'\s+', ' ', sentence).strip()
+    return sentence
 
 def evaluate(sentence):
   sentence = preprocess_sentence(sentence)
@@ -391,6 +392,7 @@ def evaluate(sentence):
     output = tf.concat([output, predicted_id], axis=-1)
 
   return tf.squeeze(output, axis=0)
+
 def predict(sentence):
   prediction = evaluate(sentence)
 
@@ -402,8 +404,24 @@ def predict(sentence):
   return predicted_sentence
 
 valid_data = pd.read_csv('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/valid_test.csv')
-sentence = valid_data['sentence']
-abs = valid_data['abs']
-for i in range(0,len(sentence)):
-  output = predict(sentence[i])
-  print(f'\n정답 : {abs[i]}')
+val_sentence = valid_data['sentence']
+val_abs = valid_data['abs']
+
+class EpochValidation(Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        self.epochPrint(epoch, logs)
+
+    def epochPrint(self, epoch, logs=None):
+        predict(val_sentence[1])
+        print(f'\n정답 : {val_abs[1]}')
+
+checkpoint = ModelCheckpoint('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5', save_best_only=True, monitor='loss', mode='min')
+
+EPOCHS = 50
+model.fit(dataset, epochs=EPOCHS, callbacks=[EpochValidation(),checkpoint])
+
+model = load_model('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5')
+
+for i in range(0,len(val_sentence)):
+  predict(val_sentence[i])
+  print(f'\n정답 : {val_abs[i]}')

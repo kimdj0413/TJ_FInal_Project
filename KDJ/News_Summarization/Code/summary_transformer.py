@@ -7,14 +7,14 @@ import time
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from tensorflow import keras
+# -*- coding: utf-8 -*-
 
 # 사용 가능한 GPU 수 확인
 print(tf.__version__)
 gpus = tf.config.list_physical_devices('GPU')
 print("Available GPUs:", gpus)
 
-data = pd.read_csv('D:/TJ_FInal_Project/News_Summarization/Data/문서요약 텍스트/Preprocess/train_preprocess.csv')
-train_data = data.sample(frac=1, random_state=42).reset_index(drop=True)
+train_data = pd.read_csv('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/train_preprocess_test.csv')
 
 ##      데이터 전처리
 sentences = []
@@ -24,36 +24,12 @@ abs = []
 for sentence in train_data['abs']:
     abs.append(sentence)
 
-tokenizer = tfds.deprecated.text.SubwordTextEncoder.build_from_corpus(
-    sentences + abs, target_vocab_size = 2**13
-)
-
-# tokenizer.save_to_file('D:/TJ_FInal_Project/News_Summarization/Data/문서요약 텍스트/Preprocess/tokenizer')
-
-tokenizer = tfds.deprecated.text.SubwordTextEncoder.load_from_file('D:/TJ_FInal_Project/News_Summarization/Data/문서요약 텍스트/Preprocess/tokenizer')
-# print(tokenizer.subwords[:100])
+tokenizer = tfds.deprecated.text.SubwordTextEncoder.load_from_file('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/tokenizer')
 
 START_TOKEN, END_TOKEN = [tokenizer.vocab_size], [tokenizer.vocab_size+1]
 VOCAB_SIZE = tokenizer.vocab_size + 2
 
-print(f'인코딩 테스트 - 전: {sentences[19]}')
-encodingList = tokenizer.encode(sentences[19])
-print(f'인코딩 테스트 - 후: {encodingList}')
-# for tok in encodingList:
-#     print(tokenizer.subwords[tok-1])
-
-answer_lengths = [len(s) for s in abs]
-avg_abs = sum(answer_lengths) / len(answer_lengths) if answer_lengths else 0
-max_abs = max(answer_lengths) if answer_lengths else 0
-
-question_lengths = [len(s) for s in sentences]
-avg_sentences = sum(question_lengths) / len(question_lengths) if question_lengths else 0
-max_sentences = max(question_lengths) if question_lengths else 0
-
-print(f"abs - 평균 길이: {avg_abs:.2f}, 최대 길이: {max_abs}")
-print(f"sentences - 평균 길이: {avg_sentences:.2f}, 최대 길이: {max_sentences}")
-input('enter')
-MAX_LENGTH = 6990
+MAX_LENGTH = 1841
 def tokenizer_and_filter(inputs, outputs):
     tokenized_inputs, tokenized_outputs = [], []
 
@@ -74,12 +50,8 @@ def tokenizer_and_filter(inputs, outputs):
     return tokenized_inputs, tokenized_outputs
 
 sentences, abs = tokenizer_and_filter(sentences, abs)
-"""
-print(sentences[19])
-print(abs[19])
-"""
 
-BATCH_SIZE = 128
+BATCH_SIZE = 2
 BUFFER_SIZE = 20000
 
 dataset = tf.data.Dataset.from_tensor_slices((
@@ -388,10 +360,15 @@ model.compile(optimizer=optimizer, loss=loss_function, metrics=[acuuracy])
 EPOCHS = 50
 model.fit(dataset, epochs=EPOCHS)
 
+def replace_special_characters(series):     # 영어,한자, 숫자, 한글, 공백, ,!?'"~ = 공백 으로 대치
+    return series.apply(lambda x: re.sub(r'[^가-힣a-zA-Z0-9\u4e00-\u9fff\s.,!?\'\"~]', ' ', x))
+
 def preprocess_sentence(sentence):
-  sentence = sentence.str.replace(r'\S+@\S+\.\S+', '', regex=True)
+  sentence = sentence.str.replace(r'\S+@\S+\.\S+', '', regex=True)        # 이메일
+  sentence = sentence.str.replace(r'\s+', ' ', regex=True).str.strip()    # 연속된 공백을 하나로
+  sentence = sentence.str.replace('\n', '', regex=False)                  # 개행 삭제
+  sentence = replace_special_characters(sentence)
   sentence = sentence.str.replace(r'\s+', ' ', regex=True).str.strip()
-  sentence = sentence.strip()
   return sentence
 
 def evaluate(sentence):
@@ -419,12 +396,14 @@ def predict(sentence):
 
   predicted_sentence = tokenizer.decode(
       [i for i in prediction if i < tokenizer.vocab_size])
-
-  print('Bot : {}'.format(predicted_sentence))
+  print(f'\n원문 : {sentence}')
+  print(f'\n요약 : {predicted_sentence}')
 
   return predicted_sentence
 
-# output = predict("독감환자 외래환자, 1천명 당 71.8명 지속 증가 이성훈 여수시가 최근 이례적으로 A형과 B형 독감이 동시에 유행하며 많은 환자가 발생하고 있는 가운데 고위험군인 어르신들의 건강관리에 나선다. 교육은 독감의 증상부터 예방접종의 중요성, 일상생활에서의 예방수칙 등을 주제로 진행된다. 질병관리본부의 발표에 따르면 지난해 12월 말 기준 독감 환자는 외래환자 1000명 당 71.8명으로 계속해서 증가 추세를 보이고 있다. 흔히‘독감’이라고 하는 인플루엔자는 인플루엔자 바이러스에 의해 감염되며, 폐렴 등 합병증이 유발될 수 있어서 주의가 필요하다. 인플루엔자 바이러스에 감염되면 1~4일 후에 발열, 두통, 근육통, 콧물, 기침 등의 증상이 나타난다. 전문가들은 일상생활에서 예방수칙 준수도 강조한다. 시 관계자는“경로당과 어린이집, 요양시설 등을 대상으로 예방수칙 준수 교육을 집중적으로 추진할 계획”이라며 “시민들께서도 예방접종과 올바른 손 씻기, 기침예절 준수 등에 적극 협조해 주시기 바란다”고 말했다.")
-# output = predict("고용창출·경제 활성화 기대 이성훈 지역 업체인 이에스바이오 농업회사법인주식회사(이하 이에스바이오·대표 강기연)와 광양시는 지난 19일 시민접견실에서 투자협약을 체결했다. 협약식에는 정현복 시장과 강기연 이에스바이오 대표를 비롯한 관계자 10여명이 참석했다. 이번에 신규 투자를 결정한 이에스바이오는 상토 및 유기질 비료 생산 전문 업체로 분말형상토, 압착매트형상토, 양액배지, 유기질 비료 등 농작물의 종류에 맞는 제품을 생산하는 기술을 보유하고 있으며, 생산품을 일본·중국 등지로 수출을 계획하고 있다. 이번 협약으로 이에스바이오는 광양항 동측배후단지 2만9113㎡의 부지에 41억원을 투자해 내년까지 상토 및 유기질 비료 제조 공장을 설립하게 된다. 또 광양항 동측배후단지에 입주해 물류비 절감과 수입 원자재에 대한 원가 절감 등을 통한 수익을 극대화해 나갈 예정이다. 시는 이번 투자유치를 통해 관리직·생산직을 비롯한 40여명이 양질의 새로운 일자리를 갖게 되고, 지역 경제 활성화에 도움이 될 것으로 기대하고 있다. 정현복 광양시장은“이번 투자 협약이 우리시가 기업하기 좋은 도시로 한걸음 더 나아가는 계기가 될 것이다”며“시는 앞으로도 경쟁력 있는 기업이 성공할 수 있도록 최선을 다해 돕겠다”고 말했다. 강기연 대표는“광양시와 투자협약을 맺게 되어 기쁘고 지역 발전에 대한 책임감이 더욱더 커진다”며“이번 협약으로 지역 발전에 기여하고 광양항 활성화를 위해 더욱더 최선을 다하겠다”고 소감을 밝혔다.")
-# output = predict("[옥천]자유한국당 박덕흠 의원(보은·옥천·영동·괴산군)은 환경부에서 지정폐기물을 수거해 직접처리를 의무화하는 '폐기물 관리법' 일부개정 법률안을 대표 발의했다고 지난 18일 밝혔다. 이 대표발의한 개정안의 내용은 환경오염유발 및 위해성 높은 지정폐기물의 환경부 직접수거처리, 조례를 통한 폐기물처리시설의 설치제한, 폐기물처리시설 주변지역에 대한 주민지원사업시행 등이다. 현행 법령에서 폐유 폐산 등 주변환경을 오염시킬 수 있거나 인체에 위해를 줄 수 있는 지정폐기물은 엄격하게 관리하도록 규정하고 있지만 폐기물의 일부만 소각되고 나머지는 전국 각지의 바다, 산, 땅속에 버려지고 있어 국가차원의 관리가 필요하다는 의견이 대두되어 왔다. 폐기물이 소각되는 경우에도 폐기물의 발생지는 대부분 수도권인 반면 폐기물 처리시설은 수도권이외 농어촌지역에 설치되어 해당지자체와 지역주민들의 불만이 많아 관련법령의 개정이 시급한 상황이다. 최근 충북지역 괴산군과 옥천군에 폐기물처리업체가 들어설 준비를 하고 있어 해당 지역주민들의 행복권과 건강이 위협받는 심각한 상황으로 지역주민들이 삭발식 등 시위를 통해 격렬히 반발하고 있다. 박 의원은 ""최근 괴산군과 옥천군에 폐기물처리시설 업체가 들어올 것이라는 지역주민들의 얘기를 듣고 법안을 발의하게 되었다""며 ""앞으로 법안이 통과되면 폐기물처리에 있어 힘없는 지자체의 힘겨운 싸움이 아니라 환경부 등 정부차원에서 체계적으로 관리하고 지역주민들에 대한 지원금도 상당한 금액이 될 수 있도록 법안통과에 힘 쓰겠다""고 법안통과 의지를 밝혔다.")
-# output = predict("노조 파업 투표…찬성 94% 대전 시내버스노조가 10일 파업 찬반투표를 한 결과 찬성이 압도적인 우위를 점하면서 시내버스 파업 현실화가 한 걸음 앞당겨졌다. 대전 시내버스노조에 따르면 노조는 이날 진행한 파업 찬반투표 결과, 찬성이 94%를 차지해 오는 17일 버스 파업 돌입을 예고했다. 노조와 대전버스운송사업조합은 그 동안 5차례에 걸쳐 임금 및 단체협약을 진행했지만 합의점을 찾지 못했다. 노조는 내년부터 주 52시간 근무제가 시행됨에 따라 근무일수 24일 보장과 7.67%의 임금 인상을 요구했지만 사측은 근무일수 23일 보장에 임금 2.0% 인상을 주장하며 견해 차이를 좁히지 못했다. 이에 따라 노조는 지난 1일 충남지방노동위원회에 노동쟁의 조정 신청을 했고, 15일간 2차례에 걸쳐 조정회의가 진행된다. 이번 노조의 파업결정으로 남은 조정 기간 동안 사측과 합의점을 찾지 못한다면 예고된 17일 대전 시내버스 파업은 현실화된다. 대전시내의 버스 파업 논란이 불거진 건 이번만이 아니다. 노조는 2012년 당시 국회의 택시법 발의와 관련해 버스운행 중단을 선언했다가 2시간만에 철회했다. 지난 4월에도 노조는 충남지방노동위원회의 노동쟁의 신청을 했지만 파업 찬반투표까지 치닫지는 않았다. 대전 시내버스 파업이 현실화 된다면 2007년 이후 12년 만이다. 대전시도 만일의 사태에 대비해 전세버스 200대와 관용버스 34대를 투입할 계획이다. 정상운행 되는 버스 411대 까지 합해진다면 파업기간 동안 운행되는 버스는 총 645대로 이는 평일 대전시 버스 정상 운행률의 66.8%, 주말에는 78.9% 수준이다. 도시철도도 하루 240회에서 290회로 늘려 운행에 시민들의 피해를 최소하겠다는 계획이다. 그러나 파업에 돌입할 경우, 그 기간이 길어진다면 시민들의 피해는 불가피 할 것으로 보인다. 2007년 대전시내버스 파업 당시에도 사측과의 협상이 난항을 겪어 파업기간이 12일까지 길어진 전례가 있다. 대전버스노조 관계자는 ""파업 여부는 사측에 달렸다""며 ""12일에 사측과 1차 조정회의가 있고 쟁의조정기간도 남아 있는 만큼 노조의 요구안을 사측이 수용한다면 파업은 철회될 수 있다""고 말했다. 이정훈 기자 수습 김기운 기자")
+valid_data = pd.read_csv('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/valid_test.csv')
+sentence = valid_data['sentence']
+abs = valid_data['abs']
+for i in range(0,len(sentence)):
+  output = predict(sentence[i])
+  print(f'\n정답 : {abs[i]}')

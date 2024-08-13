@@ -1,15 +1,9 @@
-import tensorflow as tf
+import pandas as pd
 
-# 텐서플로우 버전 출력
-print("TensorFlow Version:", tf.__version__)
-
-# GPU 사용 여부 확인
-gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-    print("GPU is available")
-    print("Number of GPUs:", len(gpus))
-else:
-    print("GPU is not available")
-
-gpus = tf.config.list_physical_devices('GPU')
-print("Available GPUs:", gpus)
+valid_data = pd.read_csv('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/valid.csv')
+valid_data = valid_data.iloc[:5]
+valid_data = valid_data.iloc[:,1:]
+valid_data.to_csv('KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/valid_test.csv', index=False)
+sentence = valid_data['sentence']
+for i in range(0,5):
+    print(sentence[i])

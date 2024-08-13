@@ -6,7 +6,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from transformers import BertTokenizer
 from tqdm import tqdm
-##하하하하
+
 """
 ######################
 ##      1차처리     ##
@@ -101,10 +101,11 @@ for sentence in train_data['abs']:
     abs.append(sentence)
 
 tokenizer = tfds.deprecated.text.SubwordTextEncoder.build_from_corpus(
-    sentences + abs, target_vocab_size = 2**20
+    sentences + abs, target_vocab_size = 2**14
 )
 tokenizer.save_to_file('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/tokenizer')
 tokenizer = tfds.deprecated.text.SubwordTextEncoder.load_from_file('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/tokenizer')
+# print(tokenizer.subwords[330442:330445])
 print(tokenizer.subwords[:100])
 print(f'토큰 크기: {tokenizer.vocab_size}')
 START_TOKEN, END_TOKEN = [tokenizer.vocab_size], [tokenizer.vocab_size+1]
@@ -117,12 +118,11 @@ print(f'인코딩 테스트 - 후: {encodingList}')
 #     print(tokenizer.subwords[tok-1])
 # subwords 출력
 for tok in encodingList:
-    # tok 값이 0보다 크고 subwords의 길이 범위 내에 있는지 확인
     if tok > 0 and tok - 1 < len(tokenizer.subwords):
         print(tokenizer.subwords[tok - 1])
     else:
         print(f"토큰 {tok}는 유효한 인덱스가 아닙니다.")
-print('dd')
+
 answer_lengths = [len(s) for s in abs]
 avg_abs = sum(answer_lengths) / len(answer_lengths) if answer_lengths else 0
 max_abs = max(answer_lengths) if answer_lengths else 0

@@ -3,7 +3,7 @@ import pandas as pd
 import re
 
 # JSON 파일 경로
-file_path = r'D:/TJ_FInal_Project/News_Summarization/Data/문서요약 텍스트/Training/news_train_original.json'
+file_path = r'D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Validation/news_valid_original.json'
 
 # JSON 파일 열기
 with open(file_path, 'r', encoding='utf-8') as file:
@@ -30,7 +30,7 @@ for doc in documents:
     })
 
 df = pd.DataFrame(data)
-df.to_csv('D:/TJ_FInal_Project/News_Summarization/Data/문서요약 텍스트/Preprocess/train.csv', index=False)
+df.to_csv('D:/TJ_FInal_Project/KDJ/News_Summarization/Data/문서요약 텍스트/Preprocess/valid.csv', index=False)
 
 # 데이터프레임 출력
 print(df)

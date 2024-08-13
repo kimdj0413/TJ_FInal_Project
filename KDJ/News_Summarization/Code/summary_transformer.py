@@ -54,7 +54,7 @@ def tokenizer_and_filter(inputs, outputs):
 
 sentences, abs = tokenizer_and_filter(sentences, abs)
 
-BATCH_SIZE = 2
+BATCH_SIZE = 128
 BUFFER_SIZE = 20000
 
 dataset = tf.data.Dataset.from_tensor_slices((
@@ -416,12 +416,12 @@ class EpochValidation(Callback):
         predict(val_sentence[1])
         print(f'\n정답 : {val_abs[1]}')
 
-# checkpoint = ModelCheckpoint('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5', save_best_only=True, monitor='loss', mode='min')
-
-EPOCHS = 100
+EPOCHS = 2000
 model.fit(dataset, epochs=EPOCHS, callbacks=[EpochValidation()]) #,checkpoint
 
-model = load_model('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/TransformersSummaryModel.h5')
+model.save_weights('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/trasformer.h5')
+
+model.load_weights('D:/TJ_FInal_Project/KDJ/News_Summarization/Model/trasformer.h5')
 
 for i in range(0,len(val_sentence)):
   predict(val_sentence[i])

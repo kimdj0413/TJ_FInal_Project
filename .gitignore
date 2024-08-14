@@ -26,3 +26,5 @@ News_Summarization/Data/문서요약 텍스트/Validation/사설_valid_original.
 News_Summarization/Data/문서요약 텍스트/Validation/신문기사_valid_original.zip
 News_Summarization/Data/문서요약 텍스트/Validation/news_valid_original.json
 >>>>>>> 761a569c0a4fba68c36b7e7b459a405e08622851
+KDJ/News_Summarization/Data/pickle/abs.pkl
+KDJ/News_Summarization/Data/pickle/sentences.pkl

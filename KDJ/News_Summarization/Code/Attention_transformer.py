@@ -15,7 +15,7 @@ for sentence in data['sentence']:
 abs = []
 for sentence in data['abs']:
     abs.append(sentence)
-"""
+
 # 길이 분포 출력
 text_len = [len(s.split()) for s in data['sentence']]
 summary_len = [len(s.split()) for s in data['abs']]
@@ -199,3 +199,4 @@ plt.show()
 src_index_to_word = tokenizer.index_word # 원문 단어 집합에서 정수 -> 단어를 얻음
 tar_word_to_index = tokenizer.word_index # 요약 단어 집합에서 단어 -> 정수를 얻음
 tar_index_to_word = tokenizer.index_word # 요약 단어 집합에서 정수 -> 단어를 얻음
+"""

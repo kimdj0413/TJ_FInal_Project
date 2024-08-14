@@ -19,27 +19,23 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 
 def scrape_page_content(driver, link_xpath):
     """주어진 XPath를 사용하여 본문 내용을 크롤링합니다."""
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
     # 링크 클릭
     link_element = driver.find_element(By.XPATH, link_xpath)
     link_element.click()
     
-    time.sleep(2)  # 페이지 로딩 대기 (필요에 따라 조정 가능)
+    time.sleep(2)  # 페이지 로딩 대기
 
     # 본문 내용 추출 (여기서도 CSS 선택자는 실제 페이지에 맞게 조정 필요)
     try:
         content = driver.find_element(By.CSS_SELECTOR, '#content > div.endContentLeft._endContentLeft > div.contentArea._contentWrap > div.questionDetail').text
-        print(f'질문 내용: {content[:50]}')  # 일부만 출력
-        contentlist = driver.find_element(By.CSS_SELECTOR, '#answer_1 > div.answerDetail._endContents._endContentsText > div > div').text
+        contentlist = driver.find_element(By.CSS_SELECTOR, '#content > div.endContentLeft._endContentLeft > div._contentBox.contentBox.contentBox--headerAnswerContent').text
         
-        # content_ = soup.select_one(".se-main-container")
-        # contentlist = soup.find(class_="se-module se-module-text").text
-        # contentlist = driver.find_element(By.XPATH, '//*[@id="SE-ac59bf6e-5711-4f18-b606-f551e55c1c5c"]/div')
-        # text = contentlist.get_text()
-        print(f'답변 내용:{contentlist}')
+        print(f'질문 내용: {content[:50]}')  # 일부만 출력
+        print(f'답변 내용: {contentlist[:50]}')
     except Exception as e:
         print(f'본문 크롤링 중 오류 발생: {e}')
         content = None
+        contentlist = None
         
     # 다시 이전 페이지로 돌아가기
     driver.back()
@@ -52,17 +48,32 @@ def main():
     driver.get(base_url)  # 시작 페이지로 이동
     
     contents = []
-    for i in range(1, 21):  # 20개의 목록을 순회
-        xpath = f'//*[@id="au_board_list"]/tr[{i}]/td[1]/a'  # 각 목록의 XPath 생성
-        print(f'{i}번째 글 크롤링 중...')
-        content , contentlist = scrape_page_content(driver, xpath)
-        if content:
-            contents.append(content)
+    
+    for page in range(1, 100): 
+        print(f'현재 페이지 {page} 크롤링 중')
+        
+        for i in range(1, 21):  # 20개의 목록을 순회
+            xpath = f'//*[@id="au_board_list"]/tr[{i}]/td[1]/a'  # 각 목록의 XPath 생성
+            print(f'{i}번째 글 크롤링 중...')
+            content, contentlist = scrape_page_content(driver, xpath)
+            if content and contentlist:  # 질문과 답변이 모두 있을 때만 추가
+                contents.append({"Question": content, "Answer": contentlist})
+    
+        # 다음 페이지로 이동
+        if page<99:
+            try:
+                next_page_button = driver.find_element(By.CSS_SELECTOR, '#content > div.paginate._default_pager > a.pg_next')
+                next_page_button.click()
+                time.sleep(2)
+            except Exception as e:
+                print(f'페이지 이동 중 오류 발생:{e}')
+                break     
     
     driver.quit()  # 브라우저 닫기
+    print("크롤링 완료")
     
     # 크롤링한 내용을 데이터프레임으로 변환
-    df = pd.DataFrame(contents, contentlist, columns=["Question" , "Answer"])
+    df = pd.DataFrame(contents)
 
     # CSV 파일로 저장
     csv_file_path = './Gina/crawled_content.csv'  # 저장할 파일 이름 및 경로

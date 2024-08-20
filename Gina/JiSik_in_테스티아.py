@@ -3,6 +3,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # Chrome 드라이버의 경로를 설정합니다.
@@ -11,26 +13,28 @@ chrome_driver_path = 'C:/TJ_FInal_Project/Gina/chromedriver.exe'  # 실제 경�
 # Chrome 드라이버 설정
 chrome_options = Options()
 chrome_options.add_argument("--headless")  # 헤드리스 모드로 실행 (UI가 필요 없는 경우)
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--ignore-certificate-errors")
+chrome_options.add_argument("--allow-running-insecure-content")
 
 # 드라이버 객체 생성
 service = Service(chrome_driver_path)
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 def scrape_page_content(driver, link_xpath):
-    # 링크 클릭
-    link_element = driver.find_element(By.XPATH, link_xpath)
-    link_element.click()
-    
-    time.sleep(2)  # 페이지 로딩 대기
-
-    # 본문 내용 추출
     try:
+        # 링크 클릭
+        link_element = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, link_xpath))
+        )
+        link_element.click()
+    
+        time.sleep(2)  # 페이지 로딩 대기
+
+        # 본문 내용 추출
         content = driver.find_element(By.CSS_SELECTOR, '#content > div.endContentLeft._endContentLeft > div.contentArea._contentWrap > div.questionDetail').text
         contentlist = driver.find_element(By.CSS_SELECTOR, '#content > div.endContentLeft._endContentLeft > div._contentBox.contentBox.contentBox--headerAnswerContent').text
-        
-        # contentlist = driver.find_element(By.CSS_SELECTOR, '#SE-38ef31f4-6f8b-4358-93ca-f65409826e2e').text
-        # parent_element = driver.find_element(By.CSS_SELECTOR, '#content > div.endContentLeft._endContentLeft > div._contentBox.contentBox.contentBox--headerAnswerContent')
-        # contentlist = parent_element.find_element(By.CSS_SELECTOR, '#SE-f2107a6c-a903-48e8-84f1-4ed6e25e1eae').text
         
         print(f'질문 내용: {content[:50]}')  # 일부만 출력
         print(f'답변 내용: {contentlist[:50]}')
@@ -46,11 +50,11 @@ def scrape_page_content(driver, link_xpath):
     return content, contentlist
 
 def main():
-    base_url = "https://kin.naver.com/userinfo/answerList.naver?u=%2B15vL%2B%2FjcNIEWf9812DrQRT0PsnVuSW4drAvhSWSPM0%3D&page="
+    base_url = "https://kin.naver.com/userinfo/answerList.naver?u=TxtAQ5bj1%2ByXuXI0b9ySQ8M%2Bwze651IbIK3P64k27LQ%3D&page="
     
     contents = []
     
-    for page in range(1, 100):  # 1부터 99페이지까지 순회
+    for page in range(3, 100):  # 1부터 99페이지까지 순회
         current_url = base_url + str(page)
         print(f'현재 페이지: {page} ({current_url}) 크롤링 중...')
         driver.get(current_url)
@@ -70,7 +74,7 @@ def main():
     df = pd.DataFrame(contents)
 
     # CSV 파일로 저장
-    csv_file_path = './Gina/jisik_in_소망에셋.csv'
+    csv_file_path = './Gina/jisik_in_테스티아.csv'
     df.to_csv(csv_file_path, mode='a', index=False, encoding='utf-8-sig')
     
     print(f"크롤링한 내용을 '{csv_file_path}' 파일로 저장했습니다.")

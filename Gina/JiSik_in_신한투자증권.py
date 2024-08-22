@@ -1,3 +1,4 @@
+
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -46,7 +47,7 @@ def scrape_page_content(driver, link_xpath):
     return content, contentlist
 
 def main():
-    base_url = "https://kin.naver.com/userinfo/answerList.naver?u=%2B15vL%2B%2FjcNIEWf9812DrQRT0PsnVuSW4drAvhSWSPM0%3D&page="
+    base_url = "https://kin.naver.com/userinfo/answerList.naver?u=zG3wruZrKPL4V14MpLy7ToRtfdBceXW6HoA3uXD5n58%3D&page="
     
     contents = []
     
@@ -70,7 +71,7 @@ def main():
     df = pd.DataFrame(contents)
 
     # CSV 파일로 저장
-    csv_file_path = './Gina/jisik_in_소망에셋.csv'
+    csv_file_path = './Gina/jisik_in_신한투자증권.csv'
     df.to_csv(csv_file_path, mode='a', index=False, encoding='utf-8-sig')
     
     print(f"크롤링한 내용을 '{csv_file_path}' 파일로 저장했습니다.")

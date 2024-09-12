@@ -49,3 +49,6 @@ KDJ/Financial_Chatbot/Sequence2Sequence/Data/FINAL_AIHUB_data.csv
 KDJ/Financial_Chatbot/Sequence2Sequence/Model/chatbot1.41995.h5
 KDJ/Financial_Chatbot/Model/chatbot1.41995.h5
 KDJ/Financial_Chatbot/Model/chatbot.h5
+KDJ/Financial_Chatbot/Sequence2Sequence/Data/FINAL_AHA2_data.csv
+KDJ/Financial_Chatbot/Sequence2Sequence/Data/FINAL_AIHUB2_data.csv
+KDJ/Financial_Chatbot/Sequence2Sequence/Data/FINAL_MERGE_DATA.csv

@@ -67,7 +67,7 @@ while True:
                 second_max_index = sorted_indices[:, 0]
                 next_token = second_max_index[0]
 
-                if next_token >= 16260:
+                if next_token >= 16251:
                     break
 
                 temparary_decoder_input.append(next_token)

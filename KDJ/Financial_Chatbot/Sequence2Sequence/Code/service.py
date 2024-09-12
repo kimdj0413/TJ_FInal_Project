@@ -11,9 +11,9 @@ from tensorflow.keras.regularizers import l2
 from keras.models import Model, load_model
 from keras.callbacks import ModelCheckpoint
 
-model_path = 'D:/chatbot_please/chatbot1.41995.h5'
+model_path = 'D:/TJ_FInal_Project/KDJ/Financial_Chatbot/Model/chatbot.h5'
 
-tokenizer = tfds.deprecated.text.SubwordTextEncoder.load_from_file('D:/chatbot_please/tokenizer')
+tokenizer = tfds.deprecated.text.SubwordTextEncoder.load_from_file('D:/TJ_FInal_Project/KDJ/Financial_Chatbot/Sequence2Sequence/Data/Final_Tokenizer')
 START_TOKEN, END_TOKEN = [tokenizer.vocab_size], [tokenizer.vocab_size+1]
 
 QUE_MAX_LENGTH = 48
